@@ -1,0 +1,35 @@
+# Environment variables
+.env
+backend/.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+env/
+
+# Data & ML artifacts
+data/faiss.index
+data/*.db
+*.duckdb
+
+# Node
+frontend/node_modules/
+frontend/.next/
+frontend/dist/
+frontend/build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
