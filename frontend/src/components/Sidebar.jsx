@@ -7,60 +7,103 @@ export default function Sidebar({ activeSection, onSectionChange, stats, statsLo
     { id: 'casestudy', label: 'Case Study' },
   ];
 
+  const isOnline = !statsLoading && stats !== null;
+
   return (
-    <aside className="w-[220px] min-w-[220px] h-screen bg-sidebar border-r border-border-editorial flex flex-col z-40 transition-all">
-      {/* Logo / Brand */}
-      <div className="px-6 py-8 border-b border-border-editorial">
-        <h1 className="text-3xl font-bold font-serif text-navy tracking-tight">
+    <aside style={{
+      width: '240px',
+      minHeight: '100vh',
+      backgroundColor: '#1C1C1C',
+      display: 'flex',
+      flexDirection: 'column',
+      padding: '0',
+      position: 'fixed',
+      left: 0, top: 0, bottom: 0,
+      zIndex: 100
+    }}>
+      {/* Logo area */}
+      <div style={{ padding: '24px 28px', borderBottom: '1px solid #333' }}>
+        <div style={{ 
+          fontFamily: 'Playfair Display', fontSize: '22px', 
+          fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.5px' 
+        }}>
           SimPPL
-        </h1>
-        <p className="text-[10px] mt-1 font-mono uppercase tracking-widest text-muted">
+        </div>
+        <div style={{ 
+          fontFamily: 'JetBrains Mono', fontSize: '10px', 
+          color: '#666', letterSpacing: '3px', marginTop: '4px', textTransform: 'uppercase' 
+        }}>
           Narratives Lab
-        </p>
+        </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 py-8">
-        <ul className="flex flex-col">
-          {navItems.map(item => {
-            const isActive = activeSection === item.id;
+      {/* Navigation items */}
+      <div style={{ padding: '20px 0', flex: 1 }}>
+        {navItems.map(item => {
+          const isActive = activeSection === item.id;
+          
+          if (isActive) {
             return (
-              <li key={item.id}>
-                <button
-                  className={`w-full text-left py-3 px-6 text-[15px] cursor-pointer transition-colors duration-150 ease border-l-[4px] font-serif ${
-                    isActive 
-                      ? 'bg-newsprint border-burnt-orange font-semibold text-navy' 
-                      : 'border-transparent text-navy hover:text-burnt-orange hover:border-burnt-orange/30'
-                  }`}
-                  onClick={() => onSectionChange(item.id)}
-                >
-                  {item.label}
-                </button>
-              </li>
-            )
-          })}
-        </ul>
-      </nav>
+              <div 
+                key={item.id}
+                style={{ 
+                  padding: '14px 28px', cursor: 'pointer',
+                  color: '#FFFFFF', fontSize: '14px', fontWeight: 600,
+                  fontFamily: 'Inter', backgroundColor: '#2A2A2A',
+                  borderLeft: '3px solid #FF4D00' 
+                }}
+                onClick={() => onSectionChange(item.id)}
+              >
+                {item.label}
+              </div>
+            );
+          } else {
+            return (
+              <div 
+                key={item.id}
+                style={{ 
+                  padding: '14px 28px', cursor: 'pointer', 
+                  color: '#999', fontSize: '14px', fontWeight: 500,
+                  fontFamily: 'Inter', transition: 'all 150ms',
+                  borderLeft: '3px solid transparent' 
+                }}
+                onClick={() => onSectionChange(item.id)}
+                onMouseEnter={e => { 
+                  e.currentTarget.style.color = '#E8E8E6'; 
+                  e.currentTarget.style.borderLeftColor = '#444'; 
+                }}
+                onMouseLeave={e => { 
+                  e.currentTarget.style.color = '#999'; 
+                  e.currentTarget.style.borderLeftColor = 'transparent'; 
+                }}
+              >
+                {item.label}
+              </div>
+            );
+          }
+        })}
+      </div>
 
-      {/* Stats footer & Status Indicator */}
-      <div className="px-6 pb-6 pt-4 border-t border-border-editorial flex justify-between items-end">
-        <div>
-          {statsLoading ? (
-            <span className="text-[11px] font-mono text-muted flex items-center gap-2">
-              Loading...
+      {/* Status indicator */}
+      <div style={{ 
+        marginTop: 'auto', padding: '20px 28px', 
+        borderTop: '1px solid #333', display: 'flex', alignItems: 'center', gap: '8px' 
+      }}>
+        {statsLoading ? (
+           <span style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#666' }}>
+             Checking...
+           </span>
+        ) : (
+          <>
+            <div style={{ 
+              width: '7px', height: '7px', borderRadius: '50%',
+              backgroundColor: isOnline ? '#00A86B' : '#FF4D00' 
+            }} />
+            <span style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#666' }}>
+              {isOnline ? 'API Connected' : 'API Offline'}
             </span>
-          ) : stats ? (
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-forest-green" />
-              <span className="text-[11px] font-mono text-navy">API Connected</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-burnt-orange" />
-              <span className="text-[11px] font-mono text-navy">API Offline</span>
-            </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </aside>
   );

@@ -1,32 +1,27 @@
-/** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ['./src/**/*.{js,jsx,ts,tsx}', './index.html'],
   theme: {
     extend: {
       colors: {
-        newsprint: '#F7F4EF',
-        sidebar: '#EDEAE3',
-        'burnt-orange': '#C1440E',
-        'forest-green': '#1B4332',
-        navy: '#1A1A2E',
-        muted: '#6B6B6B',
-        'border-editorial': '#D4CFC7',
-        'yellow-highlight': '#F5E642',
+        'page-bg': '#FAFAF8',
+        'sidebar-bg': '#1C1C1C',
+        'sidebar-text': '#E8E8E6',
+        'main-bg': '#FAFAF8',
+        'card-bg': '#FFFFFF',
+        'primary': '#FF4D00',
+        'secondary': '#0066FF',
+        'success': '#00A86B',
+        'text-primary': '#1C1C1C',
+        'text-secondary': '#6B6B6B',
+        'text-muted': '#9B9B9B',
+        'border-editorial': '#E8E4DE',
+        'tag-bg': '#F0EDE8',
       },
       fontFamily: {
-        serif: ['Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
-        sans: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
-        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+        serif: ['Playfair Display', 'Georgia', 'serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Fira Code', 'Courier New', 'monospace'],
       },
-      transitionTimingFunction: {
-        DEFAULT: 'ease',
-      },
-      transitionDuration: {
-        DEFAULT: '150ms',
-      }
     },
   },
   plugins: [],

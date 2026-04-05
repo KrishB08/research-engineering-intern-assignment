@@ -13,7 +13,10 @@ export default function NetworkGraph({ apiBase }) {
   const containerRef = useRef(null)
   const networkRef = useRef(null)
 
-  const EDITORIAL_COLORS = ['#8B6F47', '#4A7C59', '#C1440E', '#1A1A2E', '#7B8FA1']
+  const clusterColors = [
+    '#FF4D00', '#0066FF', '#00A86B', '#8B5CF6', '#F59E0B',
+    '#EC4899', '#14B8A6', '#F97316', '#6366F1', '#84CC16'
+  ]
 
   useEffect(() => {
     fetchGraph(0)
@@ -45,7 +48,7 @@ export default function NetworkGraph({ apiBase }) {
     if (!containerRef.current || !data?.nodes) return
 
     const visNodes = data.nodes.map(n => {
-      const gColor = EDITORIAL_COLORS[n.community % EDITORIAL_COLORS.length]
+      const gColor = clusterColors[n.community % clusterColors.length]
       return {
         id: n.id,
         label: n.id,
@@ -54,9 +57,9 @@ export default function NetworkGraph({ apiBase }) {
         title: `Actor: ${n.id}\nInfluence Metric: ${n.pagerank}\nDocuments: ${n.post_count}\nCohort: ${n.community}`,
         color: {
           background: gColor,
-          border: '#1A1A2E',
-          highlight: { border: '#C1440E', background: '#F5E642' },
-          hover: { border: '#1A1A2E', background: gColor }
+          border: '#1C1C1C',
+          highlight: { border: '#FF4D00', background: '#F0F7FF' },
+          hover: { border: '#1C1C1C', background: gColor }
         }
       }
     })
@@ -73,12 +76,12 @@ export default function NetworkGraph({ apiBase }) {
     const options = {
       nodes: {
         shape: 'dot',
-        scaling: { min: 5, max: 25 },
-        font: { color: '#1A1A2E', size: 10, face: 'ui-monospace, SFMono-Regular, monospace' },
+        scaling: { min: 6, max: 28 },
+        font: { color: '#1C1C1C', size: 10, face: 'JetBrains Mono, Fira Code, monospace' },
         borderWidth: 1,
       },
       edges: {
-        color: { color: '#D4CFC7', highlight: '#1A1A2E', hover: '#6B6B6B' },
+        color: { color: '#E8E4DE', highlight: '#0066FF', hover: '#0066FF' },
         width: 1,
         smooth: { type: 'continuous' }
       },
@@ -115,27 +118,56 @@ export default function NetworkGraph({ apiBase }) {
     fetchGraph(val)
   }
 
-  const activeNodes = data?.nodes?.slice(0, 5) || []
+  const topActors = data?.nodes?.slice(0, 5) || []
+
+  const LoadingState = () => (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: '64px 0', flexDirection: 'column', gap: '16px', position: 'absolute', inset: 0, backgroundColor: 'rgba(255,255,255,0.8)', zIndex: 10 }}>
+      <div style={{ width: '32px', height: '2px', backgroundColor: '#FF4D00',
+        animation: 'loadingBar 1.2s ease-in-out infinite' }} />
+      <span style={{ fontFamily: 'JetBrains Mono', fontSize: '12px', 
+        color: '#9B9B9B', letterSpacing: '2px', textTransform: 'uppercase' }}>
+        Loading
+      </span>
+    </div>
+  )
 
   return (
-    <div className="max-w-6xl mx-auto h-full flex flex-col pb-10">
+    <div style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '80px' }}>
       
-      {/* Header */}
-      <div className="mb-6 border-b border-border-editorial pb-3">
-        <h2 className="text-[32px] font-serif text-navy mb-2">Interaction Network</h2>
-        <p className="text-[13px] font-sans italic text-muted">
+      {/* Page header */}
+      <div style={{ marginBottom: '40px' }}>
+        <div style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', 
+          color: '#FF4D00', letterSpacing: '2px', textTransform: 'uppercase',
+          marginBottom: '12px' }}>
+          Network Topography
+        </div>
+        <h1 style={{ fontFamily: 'Playfair Display', fontSize: '36px', 
+          fontWeight: 700, color: '#1C1C1C', lineHeight: 1.2, marginBottom: '12px' }}>
+          Interactive Graph
+        </h1>
+        <p style={{ fontFamily: 'Inter', fontSize: '15px', 
+          color: '#6B6B6B', lineHeight: 1.6, maxWidth: '600px' }}>
           Mapping digital relationships. Nodes are sized by algorithmic influence and colored by sociological cohort structures.
         </p>
+        <div style={{ height: '1px', backgroundColor: '#E8E4DE', marginTop: '24px' }} />
       </div>
 
-      {/* Editorial Toolbar (Horizontal above graph) */}
-      <div className="flex border border-border-editorial bg-white mb-6 align-stretch font-mono text-[11px] uppercase tracking-wide">
+      {/* Stats toolbar */}
+      <div style={{ display: 'flex', gap: '24px', alignItems: 'center',
+        backgroundColor: '#FFFFFF', border: '1px solid #E8E4DE',
+        borderRadius: '8px', padding: '16px 24px', marginBottom: '20px',
+        flexWrap: 'wrap' }}>
         
-        {/* Controls block */}
-        <div className="flex items-center gap-4 px-4 py-3 bg-sidebar border-r border-border-editorial min-w-[280px]">
-          <span className="text-navy font-bold">Influence Filter</span>
-          <input
-            type="range"
+        {/* Slider control */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '200px' }}>
+          <span style={{ fontFamily: 'JetBrains Mono', fontSize: '10px', 
+            color: '#9B9B9B', letterSpacing: '2px', textTransform: 'uppercase',
+            whiteSpace: 'nowrap' }}>
+            Influence Filter
+          </span>
+          <input 
+            type="range" 
             min="0"
             max={maxPagerankVal || 0.01}
             step={(maxPagerankVal || 0.01) / 100}
@@ -143,70 +175,82 @@ export default function NetworkGraph({ apiBase }) {
             onChange={handleSliderChange}
             onMouseUp={handleSliderRelease}
             onTouchEnd={handleSliderRelease}
-            className="flex-1 h-[2px] bg-border-editorial appearance-none rounded-none outline-none focus:outline-none"
-            style={{
-              accentColor: '#C1440E'
-            }}
+            style={{ flex: 1 }} 
           />
         </div>
-
-        {/* Stats Blocks */}
-        <div className="flex px-4 py-3 border-r border-border-editorial flex-col justify-center">
-          <span className="text-muted">Nodes</span>
-          <span className="text-[15px] font-bold text-navy">{data?.total_nodes || 0}</span>
-        </div>
-        <div className="flex px-4 py-3 border-r border-border-editorial flex-col justify-center">
-          <span className="text-muted">Edges</span>
-          <span className="text-[15px] font-bold text-navy">{data?.total_edges || 0}</span>
-        </div>
-        <div className="flex px-4 py-3 flex-col justify-center">
-          <span className="text-muted">Cohorts</span>
-          <span className="text-[15px] font-bold text-navy">{data?.num_communities || 0}</span>
-        </div>
+        
+        {/* Stats */}
+        {[{label: 'Nodes', value: data?.total_nodes || 0}, {label: 'Edges', value: data?.total_edges || 0}, {label: 'Cohorts', value: data?.num_communities || 0}].map(s => (
+          <div key={s.label} style={{ textAlign: 'center', paddingLeft: '24px', borderLeft: '1px solid #E8E4DE' }}>
+            <div style={{ fontFamily: 'JetBrains Mono', fontSize: '22px', 
+              fontWeight: 600, color: '#FF4D00' }}>{s.value}</div>
+            <div style={{ fontFamily: 'JetBrains Mono', fontSize: '10px', 
+              color: '#9B9B9B', letterSpacing: '2px', textTransform: 'uppercase' }}>
+              {s.label}
+            </div>
+          </div>
+        ))}
       </div>
 
-      {error && <div className="border border-red-300 bg-red-50 text-red-800 p-3 mb-6 font-sans text-sm">Error: {error}</div>}
+      {error && (
+        <div style={{ backgroundColor: '#FFF5F0', border: '1px solid #FFD4C2',
+          borderLeft: '4px solid #FF4D00', borderRadius: '0 8px 8px 0',
+          padding: '16px 20px', marginBottom: '24px' }}>
+          <span style={{ fontFamily: 'Inter', fontSize: '13px', color: '#CC3D00' }}>
+            ⚠ {error}
+          </span>
+        </div>
+      )}
 
-      <div className="flex flex-1 gap-6 min-h-[600px]">
-        {/* Main Graph Area */}
-        <div className="w-full h-full bg-white border border-border-editorial relative">
-          {loading && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80">
-               <span className="font-mono text-[14px] text-navy">Constructing matrix...</span>
+      {/* Graph + sidebar layout */}
+      <div style={{ display: 'flex', gap: '20px' }}>
+        {/* Graph canvas */}
+        <div style={{ flex: 1, backgroundColor: '#FFFFFF', 
+          border: '1px solid #E8E4DE', borderRadius: '8px',
+          height: '520px', position: 'relative', overflow: 'hidden' }}>
+          {loading && <LoadingState />}
+          {!loading && (!data?.nodes || data.nodes.length === 0) && (
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontFamily: 'Playfair Display', fontSize: '16px', color: '#9B9B9B', fontStyle: 'italic' }}>
+                No network data matching this filter.
+              </span>
             </div>
           )}
-          <div ref={containerRef} className="w-full h-[600px] outline-none" />
+          <div ref={containerRef} style={{ width: '100%', height: '100%', outline: 'none' }} />
         </div>
-
-        {/* Top 5 Nodes Sidebar */}
-        <div className="w-[300px] border border-border-editorial bg-white p-5 flex flex-col mt-0 h-fit">
-          <h3 className="font-sans font-bold text-navy uppercase text-[12px] tracking-widest border-b-[2px] border-navy pb-2 mb-4">
-            Most Central Actors
-          </h3>
-          <div className="flex flex-col gap-4">
-            {activeNodes.map((n, i) => (
-              <div key={n.id} className="border-b border-border-editorial pb-3 flex items-start gap-3">
-                <span className="font-serif font-bold text-burnt-orange text-[18px] leading-none pt-1">
-                  {i + 1}.
-                </span>
-                <div className="flex flex-col gap-1">
-                  <span className="font-sans font-bold text-navy text-[14px] break-all">
-                    {n.id}
-                  </span>
-                  <div className="flex items-center gap-2 font-mono text-[10px] text-muted">
-                    <span className="uppercase" style={{ color: EDITORIAL_COLORS[n.community % EDITORIAL_COLORS.length] }}>
-                      Cohort {n.community}
-                    </span>
-                    <span>•</span>
-                    <span>Score: {n.pagerank.toFixed(4)}</span>
-                  </div>
+        
+        {/* Top actors panel */}
+        <div style={{ width: '220px', backgroundColor: '#FFFFFF',
+          border: '1px solid #E8E4DE', borderRadius: '8px', padding: '20px',
+          overflow: 'auto', maxHeight: '520px' }}>
+          <div style={{ fontFamily: 'JetBrains Mono', fontSize: '10px', 
+            color: '#9B9B9B', letterSpacing: '2px', textTransform: 'uppercase',
+            marginBottom: '16px' }}>
+            Top Actors
+          </div>
+          {topActors.map((actor, i) => (
+            <div key={actor.id} style={{ display: 'flex', alignItems: 'flex-start',
+              gap: '12px', paddingBottom: '12px', marginBottom: '12px',
+              borderBottom: '1px solid #F0EDE8' }}>
+              <span style={{ fontFamily: 'JetBrains Mono', fontSize: '18px',
+                fontWeight: 700, color: '#E8E4DE', lineHeight: 1 }}>
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <div style={{ width: '100%' }}>
+                <div style={{ fontFamily: 'Inter', fontSize: '13px', 
+                  fontWeight: 600, color: '#1C1C1C', wordBreak: 'break-all' }}>{actor.id}</div>
+                <div style={{ fontFamily: 'JetBrains Mono', fontSize: '10px', 
+                  color: '#FF4D00', marginTop: '4px' }}>{actor.pagerank?.toFixed(4)}</div>
+                <div style={{ fontFamily: 'JetBrains Mono', fontSize: '10px', 
+                  color: '#9B9B9B', letterSpacing: '1px', marginTop: '4px' }}>
+                  COHORT {actor.community}
                 </div>
               </div>
-            ))}
-            {activeNodes.length === 0 && !loading && (
-              <span className="font-serif italic text-muted text-sm">No actors match criteria.</span>
-            )}
-          </div>
+            </div>
+          ))}
+          {!loading && topActors.length === 0 && (
+            <span style={{ fontFamily: 'Playfair Display', fontStyle: 'italic', fontSize: '14px', color: '#9B9B9B' }}>No actors.</span>
+          )}
         </div>
       </div>
     </div>

@@ -5,7 +5,6 @@ import TimeSeries from './components/TimeSeries'
 import NetworkGraph from './components/NetworkGraph'
 import TopicClusters from './components/TopicClusters'
 import CaseStudy from './components/CaseStudy'
-import './index.css'
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
@@ -42,17 +41,25 @@ function App() {
   }
 
   return (
-    <>
+    <div style={{ display: 'flex', width: '100vw', height: '100vh', backgroundColor: '#FAFAF8', overflow: 'hidden' }}>
       <Sidebar
         activeSection={activeSection}
         onSectionChange={setActiveSection}
         stats={stats}
         statsLoading={statsLoading}
       />
-      <div className="flex-1 h-screen overflow-y-auto px-8 py-10 md:px-12 bg-newsprint">
+      
+      <main style={{ 
+        marginLeft: '240px', 
+        height: '100vh', 
+        backgroundColor: '#FAFAF8',
+        padding: '48px 56px',
+        flex: 1,
+        overflowY: 'auto'
+      }}>
         {renderSection()}
-      </div>
-    </>
+      </main>
+    </div>
   )
 }
 
