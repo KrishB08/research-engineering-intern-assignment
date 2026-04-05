@@ -1,5 +1,4 @@
 import { useState, useRef } from 'react'
-import { HiOutlineSearch, HiOutlineLightBulb, HiOutlineArrowRight } from 'react-icons/hi'
 
 export default function SearchChat({ apiBase }) {
   const [query, setQuery] = useState('')
@@ -40,28 +39,31 @@ export default function SearchChat({ apiBase }) {
     handleSearch(followUpQuery)
   }
 
+  const getTodayStr = () => {
+    return new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
   return (
-    <div className="fade-in max-w-4xl mx-auto">
-      {/* Header */}
+    <div className="max-w-4xl mx-auto pb-20">
+      {/* Top Bar / Page Header */}
       <div className="mb-8">
-        <h2 className="text-3xl font-bold gradient-text mb-2">Semantic Search & Chat</h2>
-        <p style={{ color: 'var(--color-text-secondary)' }}>
-          Search by meaning, not keywords. Ask questions about digital narratives, influence patterns, and information spread.
+        <div className="flex justify-between items-end mb-2">
+          <h2 className="text-[32px] font-serif text-navy">Semantic Search & Chat</h2>
+          <span className="font-mono text-[11px] text-muted">{getTodayStr()}</span>
+        </div>
+        <hr className="border-t border-border-editorial mb-3" />
+        <p className="text-[13px] font-sans italic text-muted">
+          Search by meaning across thousands of digital records. The artificial intelligence evaluates thematic similarities, bypassing traditional keyword matching constraints.
         </p>
       </div>
 
-      {/* Search bar */}
-      <div className="flex gap-3 mb-6">
+      {/* Search Input Bar */}
+      <div className="flex gap-0 mb-8">
         <div className="relative flex-1">
-          <HiOutlineSearch
-            size={20}
-            className="absolute left-4 top-1/2 -translate-y-1/2"
-            style={{ color: 'var(--color-text-muted)' }}
-          />
           <input
             ref={inputRef}
             type="text"
-            className="search-input pl-12"
+            className="w-full bg-white border border-border-editorial rounded-none px-4 py-3 font-serif text-[16px] text-navy outline-none focus:border-navy transition-colors"
             placeholder="e.g., How are communities organizing resistance online?"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -69,170 +71,150 @@ export default function SearchChat({ apiBase }) {
           />
         </div>
         <button
-          className="btn-primary"
+          className="bg-burnt-orange hover:bg-[#A33509] text-white px-6 py-3 font-mono text-[13px] tracking-wider uppercase rounded-none transition-colors duration-150 ease disabled:opacity-50"
           onClick={() => handleSearch()}
           disabled={loading}
         >
-          {loading ? (
-            <>
-              <div className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} />
-              Searching...
-            </>
-          ) : (
-            'Search'
-          )}
+          {loading ? 'Searching...' : 'Search'}
         </button>
       </div>
 
-      {/* Error */}
+      {/* Error & Warning */}
       {error && (
-        <div className="alert-error mb-6">⚠️ {error}</div>
+        <div className="border border-red-300 bg-red-50 text-red-800 p-3 mb-6 font-sans text-sm">
+          Error: {error}
+        </div>
       )}
-
-      {/* Warning */}
       {result?.warning && (
-        <div className="alert-warning mb-6">💡 {result.warning}</div>
+        <div className="border border-yellow-300 bg-yellow-highlight/30 text-navy p-3 mb-6 font-sans text-sm">
+          Warning: {result.warning}
+        </div>
       )}
 
-      {/* Loading state */}
+      {/* Loading State */}
       {loading && (
-        <div className="flex flex-col items-center justify-center py-20">
-          <div className="spinner mb-4" />
-          <p style={{ color: 'var(--color-text-muted)' }}>Searching across {'>'}8,000 posts...</p>
+        <div className="flex justify-center py-24">
+          <span className="font-mono text-[14px] text-navy">Loading...</span>
         </div>
       )}
 
-      {/* Results */}
-      {result && !loading && (
-        <div className="space-y-6 fade-in">
-          {/* AI Summary */}
-          {result.chatbot?.summary && (
-            <div className="glass-card p-6">
-              <div className="flex items-center gap-2 mb-3">
-                <HiOutlineLightBulb size={20} style={{ color: 'var(--color-accent-warm)' }} />
-                <h3 className="text-sm font-semibold" style={{ color: 'var(--color-accent-warm)' }}>
-                  AI Analysis
-                </h3>
-              </div>
-              <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
-                {result.chatbot.summary}
-              </p>
-            </div>
-          )}
-
-          {/* Follow-up suggestions */}
-          {result.chatbot?.follow_up_queries?.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              <span className="text-xs font-medium mr-1" style={{ color: 'var(--color-text-muted)' }}>
-                Explore further:
-              </span>
-              {result.chatbot.follow_up_queries.map((fq, i) => (
-                <button
-                  key={i}
-                  className="btn-secondary text-xs flex items-center gap-1"
-                  onClick={() => handleFollowUp(fq)}
-                >
-                  {fq}
-                  <HiOutlineArrowRight size={12} />
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Results count */}
-          <div className="flex items-center justify-between">
-            <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
-              {result.total_results} results found
-            </p>
-          </div>
-
-          {/* Post cards */}
-          {result.results?.map((post, idx) => (
-            <div key={post.post_id || idx} className="post-card fade-in" style={{ animationDelay: `${idx * 50}ms` }}>
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="tag">r/{post.subreddit}</span>
-                  <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                    by u/{post.author}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  {post.similarity_score && (
-                    <span className="text-xs px-2 py-1 rounded-md font-mono"
-                      style={{
-                        background: `rgba(16, 185, 129, ${Math.min(post.similarity_score, 1) * 0.3})`,
-                        color: 'var(--color-accent-success)',
-                      }}
-                    >
-                      {(post.similarity_score * 100).toFixed(1)}% match
-                    </span>
-                  )}
-                  <span className="text-xs font-semibold" style={{ color: 'var(--color-accent-warm)' }}>
-                    ↑ {post.score}
-                  </span>
-                </div>
-              </div>
-
-              <h4 className="text-sm font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>
-                {post.title}
-              </h4>
-
-              {post.selftext && (
-                <p className="text-xs leading-relaxed mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-                  {post.selftext.slice(0, 250)}
-                  {post.selftext.length > 250 ? '...' : ''}
-                </p>
-              )}
-
-              <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                <span>💬 {post.num_comments} comments</span>
-                <span>{post.created_utc ? new Date(post.created_utc).toLocaleDateString() : ''}</span>
-                {post.permalink && (
-                  <a
-                    href={`https://reddit.com${post.permalink}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:underline"
-                    style={{ color: 'var(--color-accent-tertiary)' }}
-                  >
-                    View on Reddit →
-                  </a>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Empty state */}
+      {/* Empty State */}
       {!result && !loading && !error && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6"
-            style={{ background: 'rgba(99, 102, 241, 0.1)' }}>
-            <HiOutlineSearch size={36} style={{ color: 'var(--color-accent-primary)' }} />
-          </div>
-          <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>
-            Explore Digital Narratives
-          </h3>
-          <p className="text-sm max-w-md" style={{ color: 'var(--color-text-muted)' }}>
-            Try searching for concepts, themes, or questions. The AI finds semantically similar posts — 
-            no keyword matching needed.
+          <p className="font-serif italic text-[18px] text-navy mb-6">
+            Enter a query above to explore digital narratives across platforms.
           </p>
-          <div className="mt-6 flex flex-wrap gap-2 justify-center">
+          <div className="flex flex-col gap-2 items-center">
+            <span className="font-mono text-xs uppercase text-muted mb-2">Suggested Inquiries</span>
             {[
               'How do communities organize mutual aid?',
               'International solidarity movements',
-              'Debates about political philosophy',
+              'Philosophical debates on radicalism',
             ].map((example, i) => (
               <button
                 key={i}
-                className="btn-secondary text-xs"
+                className="text-burnt-orange font-sans text-[14px] hover:underline"
                 onClick={() => handleFollowUp(example)}
               >
                 {example}
               </button>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Results Display */}
+      {result && !loading && (
+        <div className="space-y-6">
+          
+          {/* AI Analysis Block */}
+          {result.chatbot?.summary && (
+            <div className="mb-10 pl-6 border-l-4 border-forest-green bg-[#F0F7F4] py-4 pr-6">
+              <span className="font-mono text-[11px] uppercase tracking-wider text-forest-green block mb-2">
+                Automated Analysis
+              </span>
+              <p className="font-serif italic text-[16px] leading-relaxed text-navy">
+                {result.chatbot.summary}
+              </p>
+              
+              {result.chatbot?.follow_up_queries?.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-forest-green/20">
+                  <span className="font-mono text-[11px] text-forest-green uppercase block mb-2">Related threads</span>
+                  <div className="flex flex-wrap gap-2">
+                    {result.chatbot.follow_up_queries.map((fq, i) => (
+                      <button
+                        key={i}
+                        className="border border-dashed border-burnt-orange text-burnt-orange rounded-none px-3 py-1 text-[12px] font-sans hover:bg-burnt-orange hover:text-white transition-colors duration-150 ease"
+                        onClick={() => handleFollowUp(fq)}
+                      >
+                        {fq}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="font-mono text-[11px] text-muted border-b border-border-editorial pb-2 mb-4 uppercase tracking-widest flex justify-between">
+            <span>Documents Found</span>
+            <span>{result.total_results} items</span>
+          </div>
+
+          {/* Results List */}
+          <div className="flex flex-col gap-0">
+            {result.results?.map((post, idx) => (
+              <div 
+                key={post.post_id || idx} 
+                className="border-b border-border-editorial/50 pl-4 py-6 border-l-[3px] border-l-burnt-orange hover:bg-sidebar transition-colors duration-100 ease"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex items-center gap-3">
+                    <span className="font-sans font-bold text-navy text-[15px]">
+                      {post.author}
+                    </span>
+                    <span className="font-mono text-[11px] text-muted uppercase">
+                      r/{post.subreddit}
+                    </span>
+                  </div>
+                  <div className="flex gap-4">
+                    {post.similarity_score && (
+                      <span className="font-mono text-[11px] text-forest-green">
+                        Relevance: {(post.similarity_score * 100).toFixed(1)}%
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
+                <h4 className="font-serif font-bold text-[18px] text-navy mb-2 leading-snug">
+                  {post.title}
+                </h4>
+
+                {post.selftext && (
+                  <p className="font-serif text-[14px] text-navy/80 leading-relaxed max-h-[2.8em] overflow-hidden text-ellipsis mb-3">
+                    {post.selftext}
+                  </p>
+                )}
+
+                <div className="flex items-center gap-6 mt-3 font-mono text-[11px] text-muted uppercase tracking-wide">
+                  <span>Comments: {post.num_comments}</span>
+                  <span>Score: {post.score}</span>
+                  <span>{post.created_utc ? new Date(post.created_utc).toLocaleDateString() : 'Unknown Date'}</span>
+                  {post.permalink && (
+                    <a
+                      href={`https://reddit.com${post.permalink}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-burnt-orange hover:underline ml-auto"
+                    >
+                      Source Link →
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
         </div>
       )}
     </div>

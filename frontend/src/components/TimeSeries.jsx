@@ -2,15 +2,14 @@ import { useState, useEffect } from 'react'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts'
-import { HiOutlineSearch, HiOutlineLightBulb } from 'react-icons/hi'
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="glass-card p-3" style={{ border: '1px solid var(--color-border)', borderRadius: '8px' }}>
-        <p className="text-xs font-semibold mb-1" style={{ color: 'var(--color-text-primary)' }}>{label}</p>
-        <p className="text-xs" style={{ color: 'var(--color-accent-primary)' }}>
-          {payload[0].value} posts
+      <div className="bg-white border border-border-editorial p-3 shadow-sm rounded-none">
+        <p className="text-[11px] font-mono mb-1 text-muted uppercase tracking-wider">{label}</p>
+        <p className="text-[13px] font-sans font-bold text-burnt-orange">
+          {payload[0].value} documents
         </p>
       </div>
     )
@@ -56,25 +55,55 @@ export default function TimeSeries({ apiBase }) {
     if (e.key === 'Enter') handleSearch()
   }
 
-  return (
-    <div className="fade-in max-w-5xl mx-auto">
-      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold gradient-text mb-2">Time Series Analysis</h2>
-          <p style={{ color: 'var(--color-text-secondary)' }}>
-            Track narrative volume over time. Search by topics to see their historical footprint.
-          </p>
-        </div>
+  const getTodayStr = () => {
+    return new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  }
 
-        <div className="flex bg-[var(--color-bg-card)] rounded-lg p-1 border border-[var(--color-border)]">
+  return (
+    <div className="max-w-5xl mx-auto pb-20">
+      {/* Page Header */}
+      <div className="mb-8 border-b border-border-editorial pb-3">
+        <div className="flex justify-between items-end mb-2">
+          <h2 className="text-[32px] font-serif text-navy">Time Series Records</h2>
+          <span className="font-mono text-[11px] text-muted">{getTodayStr()}</span>
+        </div>
+        <p className="text-[13px] font-sans italic text-muted">
+          Historical analysis of narrative volumes. Track the emergence and frequency of semantic themes.
+        </p>
+      </div>
+
+      {/* Toolbar */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-8 items-center bg-sidebar border border-border-editorial p-3">
+        <div className="flex-1 flex gap-2 w-full">
+          <input
+            type="text"
+            className="flex-1 bg-white border border-border-editorial rounded-none px-3 py-2 font-serif text-[14px] text-navy outline-none focus:border-navy transition-colors placeholder:text-muted/60"
+            placeholder="Focus semantic query (e.g., 'climate change resistance')"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+          <button 
+            className="bg-navy hover:bg-black text-white px-5 py-2 font-mono text-[12px] uppercase rounded-none transition-colors" 
+            onClick={handleSearch} 
+            disabled={loading}
+          >
+            {loading ? 'Refining...' : 'Filter'}
+          </button>
+        </div>
+        
+        <div className="h-6 w-px bg-border-editorial hidden sm:block mx-2"></div>
+        
+        <div className="flex bg-white border border-border-editorial w-full sm:w-auto">
           <button
-            className={`px-4 py-1.5 text-xs rounded-md transition-colors ${groupBy === 'day' ? 'bg-[var(--color-accent-primary)] text-white' : 'text-[var(--color-text-muted)] hover:text-white'}`}
+            className={`flex-1 px-4 py-2 font-mono text-[11px] uppercase transition-colors ${groupBy === 'day' ? 'bg-forest-green text-white font-bold' : 'text-navy hover:bg-newsprint'}`}
             onClick={() => setGroupBy('day')}
           >
             Daily
           </button>
+          <div className="w-px bg-border-editorial"></div>
           <button
-            className={`px-4 py-1.5 text-xs rounded-md transition-colors ${groupBy === 'week' ? 'bg-[var(--color-accent-primary)] text-white' : 'text-[var(--color-text-muted)] hover:text-white'}`}
+            className={`flex-1 px-4 py-2 font-mono text-[11px] uppercase transition-colors ${groupBy === 'week' ? 'bg-forest-green text-white font-bold' : 'text-navy hover:bg-newsprint'}`}
             onClick={() => setGroupBy('week')}
           >
             Weekly
@@ -82,87 +111,69 @@ export default function TimeSeries({ apiBase }) {
         </div>
       </div>
 
-      <div className="flex gap-3 mb-6">
-        <div className="relative flex-1">
-          <HiOutlineSearch
-            size={20}
-            className="absolute left-4 top-1/2 -translate-y-1/2"
-            style={{ color: 'var(--color-text-muted)' }}
-          />
-          <input
-            type="text"
-            className="search-input pl-12"
-            placeholder="Filter by semantic search (e.g., 'climate change', 'protest action')"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-          />
-        </div>
-        <button className="btn-primary" onClick={handleSearch} disabled={loading}>
-          {loading ? <div className="spinner w-4 h-4" /> : 'Filter'}
-        </button>
-      </div>
+      {error && <div className="border border-red-300 bg-red-50 text-red-800 p-3 mb-6 font-sans text-sm">Error: {error}</div>}
 
-      {error && <div className="alert-error mb-6">⚠️ {error}</div>}
-
-      {/* AI Summary */}
+      {/* AI Summary Note */}
       {data?.summary && (
-        <div className="glass-card p-6 mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <HiOutlineLightBulb size={20} style={{ color: 'var(--color-accent-tertiary)' }} />
-            <h3 className="text-sm font-semibold" style={{ color: 'var(--color-accent-tertiary)' }}>
-              Trend Analysis: {data.query}
-            </h3>
-          </div>
-          <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
+        <div className="mb-8 border-t-[3px] border-t-burnt-orange bg-sidebar p-5 relative">
+          <span className="font-mono text-[11px] font-bold text-burnt-orange uppercase tracking-widest absolute -top-[10px] bg-sidebar px-2 border border-border-editorial left-4">
+            Analysis
+          </span>
+          <p className="font-serif italic text-[15px] leading-relaxed text-navy mt-1">
             {data.summary}
           </p>
         </div>
       )}
 
-      {/* Chart */}
-      <div className="chart-container relative h-[400px]">
+      {/* Chart Section */}
+      <h3 className="font-serif text-[20px] text-navy mb-4 border-b border-border-editorial pb-2">
+        Narrative Volume Distribution
+      </h3>
+
+      <div className="relative h-[450px] w-full bg-white border border-border-editorial p-6 pt-8">
         {loading && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--color-bg-card)]/50 backdrop-blur-sm rounded-2xl">
-            <div className="spinner" />
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80">
+            <span className="font-mono text-[14px] text-navy">Running aggregation...</span>
           </div>
         )}
         
         {!loading && data?.data_points?.length === 0 ? (
-          <div className="w-full h-full flex items-center justify-center text-[var(--color-text-muted)] text-sm">
-            No data available for this query.
+          <div className="w-full h-full flex items-center justify-center font-serif italic text-muted">
+            No historical data found for this semantic filter.
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data?.data_points || []} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
+            <LineChart data={data?.data_points || []} margin={{ top: 10, right: 20, left: 0, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#D4CFC7" vertical={false} />
               <XAxis 
                 dataKey="date" 
-                stroke="var(--color-text-muted)" 
-                fontSize={12}
-                tickMargin={10}
+                stroke="#6B6B6B" 
+                fontSize={11}
+                fontFamily="SFMono-Regular, Consolas, monospace"
+                tickMargin={12}
                 tickFormatter={(val) => {
                   try {
-                    return new Date(val).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+                    return new Date(val).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
                   } catch {
                     return val
                   }
                 }}
               />
               <YAxis 
-                stroke="var(--color-text-muted)" 
-                fontSize={12}
-                tickMargin={10}
+                stroke="#6B6B6B" 
+                fontSize={11}
+                fontFamily="SFMono-Regular, Consolas, monospace"
+                tickMargin={12}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#6B6B6B', strokeWidth: 1, strokeDasharray: '5 5' }} />
               <Line 
                 type="monotone" 
                 dataKey="count" 
-                stroke="var(--color-accent-primary)" 
-                strokeWidth={3}
-                dot={false}
-                activeDot={{ r: 6, fill: 'var(--color-bg-primary)', stroke: 'var(--color-accent-primary)', strokeWidth: 2 }}
-                animationDuration={1000}
+                stroke="#1A1A2E" 
+                strokeWidth={2}
+                dot={{ r: 2, fill: '#C1440E', strokeWidth: 0 }}
+                activeDot={{ r: 5, fill: '#C1440E', stroke: '#1A1A2E', strokeWidth: 2 }}
+                animationDuration={0}
               />
             </LineChart>
           </ResponsiveContainer>

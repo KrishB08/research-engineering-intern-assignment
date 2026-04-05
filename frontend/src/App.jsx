@@ -49,7 +49,7 @@ function App() {
         stats={stats}
         statsLoading={statsLoading}
       />
-      <div className="main-content">
+      <div className="flex-1 h-screen overflow-y-auto px-8 py-10 md:px-12 bg-newsprint">
         {renderSection()}
       </div>
     </>

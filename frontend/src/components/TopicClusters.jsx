@@ -2,24 +2,19 @@ import { useState, useEffect } from 'react'
 import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from 'recharts'
-import { HiOutlineSearch } from 'react-icons/hi'
 
-const HEATMAP_COLORS = [
-  '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#facc15',
-  '#10b981', '#0ea5e9', '#d946ef', '#f97316', '#84cc16',
-  '#14b8a6', '#3b82f6', '#6366f1'
-]
+const HEATMAP_COLORS = ['#8B6F47', '#4A7C59', '#C1440E', '#1A1A2E', '#7B8FA1', '#2C497F', '#5D4A66', '#87675D']
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload
     return (
-      <div className="glass-card p-3" style={{ border: '1px solid var(--color-border)', borderRadius: '8px' }}>
-        <p className="text-xs font-semibold mb-1" style={{ color: 'var(--color-text-primary)' }}>
-          Cluster {data.cluster}
+      <div className="bg-white border border-border-editorial p-3 shadow-none">
+        <p className="text-[11px] font-mono mb-1 text-muted uppercase tracking-wider">
+          Cohort {data.cluster}
         </p>
-        <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-          Post ID: {data.post_id}
+        <p className="text-[12px] font-mono text-navy font-bold">
+          Record: {data.post_id}
         </p>
       </div>
     )
@@ -93,147 +88,147 @@ export default function TopicClusters({ apiBase }) {
   }
 
   return (
-    <div className="fade-in max-w-7xl mx-auto h-full flex flex-col">
-      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold gradient-text mb-2">Topic Clusters (UMAP)</h2>
-          <p style={{ color: 'var(--color-text-secondary)' }}>
-            2D projection of the semantic embedding space. Detects themes using HDBSCAN or KMeans.
-          </p>
-        </div>
-
-        <div className="flex bg-[var(--color-bg-card)] rounded-lg p-2 border border-[var(--color-border)] items-center gap-2">
-          <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Target Clusters:</span>
-          <input 
-            type="number" 
-            min="2" max="50" 
-            className="w-16 bg-[var(--color-bg-primary)] border border-[var(--color-border)] rounded-md px-2 py-1 text-xs text-white outline-none"
-            placeholder="Auto"
-            value={nClusters}
-            onChange={e => setNClusters(e.target.value)}
-          />
-          <button className="btn-secondary text-xs p-1 px-3" onClick={handleApplyClusters}>
-            Apply
-          </button>
-        </div>
+    <div className="max-w-7xl mx-auto h-full flex flex-col pb-10">
+      <div className="mb-8 border-b border-border-editorial pb-3">
+        <h2 className="text-[32px] font-serif text-navy mb-2">Thematic Dimensionality</h2>
+        <p className="text-[13px] font-sans italic text-muted">
+          Two-dimensional semantic projections identifying macro-narratives through spatial proximity.
+        </p>
       </div>
 
-      {error ? (
-        <div className="alert-error mx-auto mt-10">⚠️ {error}</div>
-      ) : data?.warning ? (
-        <div className="alert-warning mb-6">💡 {data.warning}</div>
-      ) : null}
+      <div className="flex items-center gap-4 border border-border-editorial bg-sidebar p-3 mb-6 w-full sm:w-auto">
+        <span className="font-mono text-[11px] uppercase text-navy font-bold">Cohorts:</span>
+        <input 
+          type="number" 
+          min="2" max="50" 
+          className="w-16 bg-white border border-border-editorial rounded-none px-2 py-1 text-xs text-navy outline-none focus:border-navy"
+          placeholder="Auto"
+          value={nClusters}
+          onChange={e => setNClusters(e.target.value)}
+        />
+        <button className="bg-navy hover:bg-black text-white px-3 py-1 font-mono text-[11px] uppercase transition-colors" onClick={handleApplyClusters}>
+          Apply
+        </button>
+      </div>
 
-      <div className="flex-1 flex gap-6 min-h-[500px]">
+      {error && <div className="border border-red-300 bg-red-50 text-red-800 p-3 mb-6 font-sans text-sm">Error: {error}</div>}
+      {data?.warning && <div className="border border-yellow-300 bg-yellow-highlight/30 text-navy p-3 mb-6 font-sans text-sm">Note: {data.warning}</div>}
+
+      <div className="flex-1 flex flex-col lg:flex-row gap-0 border border-border-editorial bg-white">
+        
         {/* Left: UMAP Chart */}
-        <div className="chart-container flex-[2] relative flex flex-col">
+        <div className="flex-[5] relative flex flex-col border-r border-border-editorial">
           {loading && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--color-bg-card)]/50 backdrop-blur-sm rounded-2xl">
-              <div className="spinner" />
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90">
+              <span className="font-mono text-[14px] text-navy">Projecting tensor space...</span>
             </div>
           )}
           
-          <div className="flex justify-between mb-2">
-            <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-              Embeddings Projection 
-              <span className="ml-2 text-xs font-normal" style={{ color: 'var(--color-text-muted)' }}>
-                ({data?.method === 'hdbscan' ? 'HDBSCAN Auto-detected' : 'KMeans'})
-              </span>
+          <div className="p-4 border-b border-border-editorial flex justify-between bg-sidebar">
+            <h3 className="text-[14px] font-sans font-bold text-navy uppercase tracking-wide">
+              Projection Map
             </h3>
-            <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-              {data?.n_clusters || 0} clusters found
+            <span className="text-[11px] font-mono text-muted uppercase">
+              {data?.method === 'hdbscan' ? 'HDBSCAN Auto' : 'KMeans'} • {data?.n_clusters || 0} discovered
             </span>
           </div>
 
-          <div className="flex-1 w-full min-h-[400px]">
+          <div className="w-full flex-1 min-h-[500px] p-6 relative bg-newsprint/40">
             {data?.points && data.points.length > 0 && (
               <ResponsiveContainer width="100%" height="100%">
-                <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                  <XAxis type="number" dataKey="x" name="UMAP X" tick={false} axisLine={false} />
-                  <YAxis type="number" dataKey="y" name="UMAP Y" tick={false} axisLine={false} />
-                  <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
+                <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#D4CFC7" />
+                  <XAxis type="number" dataKey="x" tick={false} axisLine={false} />
+                  <YAxis type="number" dataKey="y" tick={false} axisLine={false} />
+                  <Tooltip cursor={{ strokeDasharray: '3 3', stroke: '#1A1A2E' }} content={<CustomTooltip />} />
                   <Scatter 
                     name="Embeddings" 
                     data={data.points} 
                     onClick={(data) => loadClusterPosts(data.cluster)}
                   >
                     {data.points.map((entry, index) => {
-                      const color = entry.cluster === -1 ? '#334155' : HEATMAP_COLORS[entry.cluster % HEATMAP_COLORS.length]
-                      const opacity = entry.cluster === -1 ? 0.3 : 0.8
+                      const isNoise = entry.cluster === -1
+                      const color = isNoise ? '#D4CFC7' : HEATMAP_COLORS[entry.cluster % HEATMAP_COLORS.length]
+                      const isSelected = activeCluster !== null && activeCluster === entry.cluster
+                      
+                      // Highlight selected points
+                      const opacity = isSelected ? 1 : (activeCluster !== null ? 0.2 : (isNoise ? 0.4 : 0.9))
+                      const radius = isSelected ? 30 : 20
+                      
                       return <Cell key={`cell-${index}`} fill={color} opacity={opacity} />
                     })}
                   </Scatter>
                 </ScatterChart>
               </ResponsiveContainer>
             )}
+            <div className="absolute bottom-4 left-0 w-full text-center pointer-events-none">
+              <span className="bg-white/90 px-3 py-1 text-[10px] font-mono uppercase tracking-wide text-muted border border-border-editorial">
+                Select a cluster to analyze qualitative sources
+              </span>
+            </div>
           </div>
-          <p className="text-xs text-center mt-2" style={{ color: 'var(--color-text-muted)' }}>
-            Click a dot to view posts from that cluster. Dark grey = Noise/Outliers.
-          </p>
         </div>
 
-        {/* Right: Cluster Details */}
-        <div className="flex-1 flex flex-col gap-4 overflow-y-auto">
-          <div className="glass-card p-4">
-            <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--color-text-primary)' }}>
-              {activeCluster !== null ? (
-                <>Cluster {activeCluster} Posts</>
-              ) : (
-                <>Detected Themes</>
-              )}
+        {/* Right: Cluster Post List in Newspaper column style */}
+        <div className="flex-[3] flex flex-col bg-white">
+          <div className="p-4 border-b border-border-editorial bg-sidebar">
+            <h3 className="text-[14px] font-sans font-bold text-navy uppercase tracking-wide">
+              {activeCluster !== null ? `Cohort ${activeCluster} Records` : 'Detected Themes'}
             </h3>
-            
+          </div>
+          
+          <div className="p-0 overflow-y-auto max-h-[600px]">
             {activeCluster !== null ? (
-              <div className="space-y-4">
+              <div className="p-4">
                 <button 
-                  className="text-xs hover:underline mb-2" 
-                  style={{ color: 'var(--color-accent-tertiary)' }}
+                  className="font-mono text-[11px] text-burnt-orange uppercase tracking-wide hover:underline mb-4 flex items-center gap-1" 
                   onClick={() => setActiveCluster(null)}
                 >
-                  ← Back to Themes
+                  ← Return to overview
                 </button>
                 
                 {loadingPosts ? (
-                  <div className="flex justify-center p-4"><div className="spinner w-6 h-6 border-2" /></div>
+                  <p className="font-mono text-[11px] text-muted p-4">Indexing records...</p>
                 ) : clusterPosts.length === 0 ? (
-                  <p className="text-xs text-gray-500">No posts collected.</p>
+                  <p className="font-serif italic text-[14px] text-muted p-4">No records accessible for this cohort.</p>
                 ) : (
-                  clusterPosts.map(p => (
-                    <div key={p.post_id} className="border-b border-[var(--color-border)] pb-3">
-                      <p className="text-xs font-semibold mb-1" style={{ color: 'var(--color-text-primary)' }}>{p.title}</p>
-                      <div className="flex justify-between text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
-                        <span>r/{p.subreddit}</span>
-                        <span>u/{p.author}</span>
-                        <span>↑ {p.score}</span>
+                  <div className="flex flex-col gap-0 border-t border-border-editorial">
+                    {clusterPosts.map(p => (
+                      <div key={p.post_id} className="py-4 border-b border-border-editorial">
+                        <p className="font-serif font-bold text-[16px] text-navy mb-2 leading-snug">{p.title}</p>
+                        <div className="flex justify-between font-mono text-[10px] text-muted uppercase tracking-wider">
+                          <span>r/{p.subreddit}</span>
+                          <span>Score {p.score}</span>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))}
+                  </div>
                 )}
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="flex flex-col">
                 {data?.clusters?.map(c => {
-                  const color = c.cluster_id === -1 ? '#334155' : HEATMAP_COLORS[c.cluster_id % HEATMAP_COLORS.length]
+                  const isNoise = c.cluster_id === -1
+                  const themeColor = isNoise ? '#D4CFC7' : HEATMAP_COLORS[c.cluster_id % HEATMAP_COLORS.length]
+                  
                   return (
-                    <div 
+                    <button 
                       key={c.cluster_id} 
-                      className="p-3 rounded-lg border cursor-pointer hover:bg-[var(--color-bg-card-hover)] transition-colors"
-                      style={{ borderColor: 'var(--color-border)', borderLeft: `4px solid ${color}` }}
+                      className={`text-left p-4 border-b border-border-editorial hover:bg-newsprint transition-colors group flex flex-col gap-2 ${activeCluster === c.cluster_id ? 'bg-yellow-highlight' : ''}`}
                       onClick={() => loadClusterPosts(c.cluster_id)}
                     >
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-                          {c.label || `Cluster ${c.cluster_id}`}
-                        </span>
-                        <span className="text-[10px] bg-[var(--color-bg-primary)] px-2 py-0.5 rounded" style={{ color: 'var(--color-text-muted)' }}>
-                          {c.size} posts
+                      <div className="flex justify-between items-start w-full gap-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 block" style={{ backgroundColor: themeColor }} />
+                          <span className="font-sans font-bold text-[14px] text-navy">
+                            {c.label || (isNoise ? 'Uncategorized Noise' : `Cohort ${c.cluster_id}`)}
+                          </span>
+                        </div>
+                        <span className="font-mono text-[11px] text-muted group-hover:text-burnt-orange transition-colors whitespace-nowrap">
+                          {c.size} docs
                         </span>
                       </div>
-                      <p className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
-                        {c.cluster_id === -1 ? 'Uncategorized data points' : 'Click to explore posts'}
-                      </p>
-                    </div>
+                    </button>
                   )
                 })}
               </div>

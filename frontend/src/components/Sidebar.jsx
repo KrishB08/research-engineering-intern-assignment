@@ -1,81 +1,67 @@
-import {
-  HiOutlineSearch,
-  HiOutlineChartBar,
-  HiOutlineGlobeAlt,
-  HiOutlineColorSwatch,
-  HiOutlineBookOpen,
-} from 'react-icons/hi'
-
-const navItems = [
-  { id: 'search', label: 'Search & Chat', icon: HiOutlineSearch },
-  { id: 'timeseries', label: 'Time Series', icon: HiOutlineChartBar },
-  { id: 'network', label: 'Network Graph', icon: HiOutlineGlobeAlt },
-  { id: 'clusters', label: 'Topic Clusters', icon: HiOutlineColorSwatch },
-  { id: 'casestudy', label: 'Case Study', icon: HiOutlineBookOpen },
-]
-
 export default function Sidebar({ activeSection, onSectionChange, stats, statsLoading }) {
+  const navItems = [
+    { id: 'search', label: 'Search & Chat' },
+    { id: 'timeseries', label: 'Time Series' },
+    { id: 'network', label: 'Network Graph' },
+    { id: 'clusters', label: 'Topic Clusters' },
+    { id: 'casestudy', label: 'Case Study' },
+  ];
+
   return (
-    <aside className="sidebar">
+    <aside className="w-[220px] min-w-[220px] h-screen bg-sidebar border-r border-border-editorial flex flex-col z-40 transition-all">
       {/* Logo / Brand */}
-      <div className="p-6 pb-2">
-        <h1 className="text-xl font-bold gradient-text tracking-tight">SimPPL</h1>
-        <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
-          Digital Narratives Dashboard
+      <div className="px-6 py-8 border-b border-border-editorial">
+        <h1 className="text-3xl font-bold font-serif text-navy tracking-tight">
+          SimPPL
+        </h1>
+        <p className="text-[10px] mt-1 font-mono uppercase tracking-widest text-muted">
+          Narratives Lab
         </p>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4">
-        {navItems.map(item => {
-          const Icon = item.icon
-          return (
-            <button
-              key={item.id}
-              className={`sidebar-item ${activeSection === item.id ? 'active' : ''}`}
-              onClick={() => onSectionChange(item.id)}
-            >
-              <Icon size={20} />
-              <span>{item.label}</span>
-            </button>
-          )
-        })}
+      <nav className="flex-1 py-8">
+        <ul className="flex flex-col">
+          {navItems.map(item => {
+            const isActive = activeSection === item.id;
+            return (
+              <li key={item.id}>
+                <button
+                  className={`w-full text-left py-3 px-6 text-[15px] cursor-pointer transition-colors duration-150 ease border-l-[4px] font-serif ${
+                    isActive 
+                      ? 'bg-newsprint border-burnt-orange font-semibold text-navy' 
+                      : 'border-transparent text-navy hover:text-burnt-orange hover:border-burnt-orange/30'
+                  }`}
+                  onClick={() => onSectionChange(item.id)}
+                >
+                  {item.label}
+                </button>
+              </li>
+            )
+          })}
+        </ul>
       </nav>
 
-      {/* Stats footer */}
-      <div className="p-4 mx-3 mb-4 rounded-xl" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)' }}>
-        {statsLoading ? (
-          <div className="flex items-center gap-2">
-            <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
-            <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Loading stats...</span>
-          </div>
-        ) : stats ? (
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Posts</span>
-              <span className="text-xs font-semibold" style={{ color: 'var(--color-accent-primary)' }}>
-                {stats.total_posts?.toLocaleString()}
-              </span>
+      {/* Stats footer & Status Indicator */}
+      <div className="px-6 pb-6 pt-4 border-t border-border-editorial flex justify-between items-end">
+        <div>
+          {statsLoading ? (
+            <span className="text-[11px] font-mono text-muted flex items-center gap-2">
+              Loading...
+            </span>
+          ) : stats ? (
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-forest-green" />
+              <span className="text-[11px] font-mono text-navy">API Connected</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Authors</span>
-              <span className="text-xs font-semibold" style={{ color: 'var(--color-accent-secondary)' }}>
-                {stats.unique_authors?.toLocaleString()}
-              </span>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-burnt-orange" />
+              <span className="text-[11px] font-mono text-navy">API Offline</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Subreddits</span>
-              <span className="text-xs font-semibold" style={{ color: 'var(--color-accent-tertiary)' }}>
-                {stats.unique_subreddits?.toLocaleString()}
-              </span>
-            </div>
-          </div>
-        ) : (
-          <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-            Backend offline
-          </span>
-        )}
+          )}
+        </div>
       </div>
     </aside>
-  )
+  );
 }
