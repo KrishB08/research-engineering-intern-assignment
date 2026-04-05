@@ -282,7 +282,28 @@ Generate a single descriptive label for this cluster in 3-5 words.
 The label should capture the common theme or topic.
 Return ONLY the label, nothing else."""
 
-    label = _safe_generate(prompt, "Mixed Discussions")
+    # Native fallback logic (keyword extraction) if API is offline
+    fallback_label = "Topic Group"
+    if posts:
+        import re
+        from collections import Counter
+        words = []
+        for p in posts:
+            title = p.get('title', '')
+            tokens = re.findall(r'\b[a-zA-Z]{4,}\b', title.lower())
+            words.extend(tokens)
+        
+        stopwords = {"this", "that", "with", "from", "your", "what", "have", "they", "will", "would", "about", "there", "just", "like", "when", "their", "more", "people", "some", "them", "how", "why", "who", "which"}
+        words = [w for w in words if w not in stopwords]
+        
+        if words:
+            top_words = [w[0].title() for w in Counter(words).most_common(2)]
+            fallback_label = " & ".join(top_words) + " Discussions"
+        else:
+            fallback_label = f"r/{posts[0].get('subreddit', 'Mixed')} Topics"
+
+    label = _safe_generate(prompt, fallback_label)
+    
     # Clean up — remove quotes, extra whitespace
     label = label.strip().strip('"').strip("'").strip()
 

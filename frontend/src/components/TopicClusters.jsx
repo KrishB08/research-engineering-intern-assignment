@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import {
-  ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
+  ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from 'recharts'
 
 const clusterColors = [
@@ -114,48 +114,52 @@ export default function TopicClusters({ apiBase }) {
     </div>
   )
 
-  const renderLeftPanel = () => {
+  const renderTopPanel = () => {
     return (
-      <div style={{ flex: 1, backgroundColor: '#FFFFFF',
+      <div style={{ width: '100%', backgroundColor: '#FFFFFF',
         border: '1px solid #E8E4DE', borderRadius: '8px',
-        padding: '20px', minHeight: '480px', position: 'relative' }}>
+        padding: '24px', minHeight: '500px', position: 'relative', marginBottom: '24px' }}>
         {loading && <LoadingState />}
         <div style={{ fontFamily: 'JetBrains Mono', fontSize: '10px', 
           color: '#9B9B9B', letterSpacing: '2px', textTransform: 'uppercase',
-          marginBottom: '16px' }}>
+          marginBottom: '20px' }}>
           Projection Map: {data?.method === 'hdbscan' ? 'HDBSCAN Auto' : 'KMeans'}
         </div>
         
-        <div style={{ height: '450px', width: '100%' }}>
-          {data?.points && data.points.length > 0 && (
-            <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F0EDE8" />
-                <XAxis type="number" dataKey="x" tick={false} axisLine={false} />
-                <YAxis type="number" dataKey="y" tick={false} axisLine={false} />
-                <Tooltip cursor={{ strokeDasharray: '3 3', stroke: '#1C1C1C' }} content={<CustomTooltip />} />
-                <Scatter 
-                  name="Embeddings" 
-                  data={data.points} 
-                  onClick={(data) => loadClusterPosts(data.cluster)}
-                >
-                  {data.points.map((entry, index) => {
-                    const isNoise = entry.cluster === -1
-                    const color = isNoise ? '#D4CFC7' : clusterColors[entry.cluster % clusterColors.length]
-                    const isSelected = activeCluster !== null && activeCluster === entry.cluster
-                    const opacity = isSelected ? 1 : (activeCluster !== null ? 0.2 : (isNoise ? 0.4 : 0.8))
-                    return <Cell key={`cell-${index}`} fill={color} opacity={opacity} />
-                  })}
-                </Scatter>
-              </ScatterChart>
-            </ResponsiveContainer>
-          )}
+        <div style={{ height: '460px', width: '100%' }}>
+          {data?.points && data.points.length > 0 && (() => {
+            const sampledPoints = data.points.filter((_, i) => i % Math.ceil(data.points.length / 800) === 0)
+            return (
+              <ResponsiveContainer width="100%" height="100%">
+                <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F0EDE8" />
+                  <XAxis type="number" dataKey="x" tick={false} axisLine={false} domain={['auto', 'auto']} />
+                  <YAxis type="number" dataKey="y" tick={false} axisLine={false} domain={['auto', 'auto']} />
+                  <ZAxis type="number" range={[15, 15]} />
+                  <Tooltip cursor={{ strokeDasharray: '3 3', stroke: '#1C1C1C' }} content={<CustomTooltip />} />
+                  <Scatter 
+                    name="Embeddings" 
+                    data={sampledPoints} 
+                    onClick={(data) => loadClusterPosts(data.cluster)}
+                  >
+                    {sampledPoints.map((entry, index) => {
+                      const isNoise = entry.cluster === -1
+                      const color = isNoise ? '#D4CFC7' : clusterColors[entry.cluster % clusterColors.length]
+                      const isSelected = activeCluster !== null && activeCluster === entry.cluster
+                      const opacity = isSelected ? 1 : (activeCluster !== null ? 0.1 : (isNoise ? 0.3 : 0.7))
+                      return <Cell key={`cell-${index}`} fill={color} opacity={opacity} />
+                    })}
+                  </Scatter>
+                </ScatterChart>
+              </ResponsiveContainer>
+            )
+          })()}
         </div>
       </div>
     )
   }
 
-  const renderRightPanelContent = () => {
+  const renderBottomPanelContent = () => {
     if (activeCluster !== null) {
       return (
         <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E8E4DE', borderRadius: '8px', padding: '20px', overflowY: 'auto', maxHeight: '550px' }}>
@@ -190,7 +194,13 @@ export default function TopicClusters({ apiBase }) {
     }
 
     return (
-      <div style={{ overflowY: 'auto', maxHeight: '550px', paddingRight: '8px' }}>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', 
+        gap: '16px', 
+        maxHeight: '550px', 
+        overflowY: 'auto' 
+      }}>
         {data?.clusters?.map((cluster, i) => {
           const isNoise = cluster.cluster_id === -1
           const cLabel = cluster.label || (isNoise ? 'Uncategorized Noise' : `Cluster ${cluster.cluster_id}`)
@@ -199,7 +209,7 @@ export default function TopicClusters({ apiBase }) {
               backgroundColor: activeCluster === cluster.cluster_id ? '#FFF8F0' : '#FFFFFF',
               border: '1px solid',
               borderColor: activeCluster === cluster.cluster_id ? '#FF4D00' : '#E8E4DE',
-              borderRadius: '8px', padding: '16px', marginBottom: '10px',
+              borderRadius: '8px', padding: '16px',
               cursor: 'pointer', transition: 'all 150ms'
             }} onClick={() => loadClusterPosts(cluster.cluster_id)}>
               <div style={{ display: 'flex', justifyContent: 'space-between',
@@ -294,20 +304,18 @@ export default function TopicClusters({ apiBase }) {
         </div>
       )}
 
-      {/* Main projection + themes layout */}
-      <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-        
-        {renderLeftPanel()}
-        
-        <div style={{ width: '280px', flexGrow: 1 }}>
-          <div style={{ fontFamily: 'JetBrains Mono', fontSize: '10px', 
-            color: '#9B9B9B', letterSpacing: '2px', textTransform: 'uppercase',
-            marginBottom: '16px' }}>
-            {activeCluster !== null ? `COHORT ${activeCluster} RECORDS` : 'DETECTED THEMES'}
-          </div>
-          
-          {renderRightPanelContent()}
+      {/* Main projection map (Full Landscape) */}
+      {renderTopPanel()}
+      
+      {/* Themes grid/list below */}
+      <div style={{ width: '100%' }}>
+        <div style={{ fontFamily: 'JetBrains Mono', fontSize: '10px', 
+          color: '#9B9B9B', letterSpacing: '2px', textTransform: 'uppercase',
+          marginBottom: '16px' }}>
+          {activeCluster !== null ? `COHORT ${activeCluster} RECORDS` : 'DETECTED THEMES'}
         </div>
+        
+        {renderBottomPanelContent()}
       </div>
 
     </div>

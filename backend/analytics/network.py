@@ -124,11 +124,11 @@ def _build_raw_graph(db_path: str = DUCKDB_PATH) -> nx.Graph:
 
     for sub, authors in subreddit_authors.items():
         authors_list = list(authors)
-        # Only create co-subreddit edges for subreddits with moderate activity
-        if len(authors_list) > 100:
-            continue  # Skip very large subreddits, too noisy
+        # Create co-subreddit edges for subreddits up to high activity
+        if len(authors_list) > 2000:
+            continue  # Skip massive megathreads to prevent O(N^2) explosion
         for i in range(len(authors_list)):
-            for j in range(i + 1, min(len(authors_list), i + 50)):
+            for j in range(i + 1, min(len(authors_list), i + 25)):
                 a1, a2 = authors_list[i], authors_list[j]
                 if G.has_edge(a1, a2):
                     G[a1][a2]["weight"] += 1
@@ -136,7 +136,7 @@ def _build_raw_graph(db_path: str = DUCKDB_PATH) -> nx.Graph:
                 else:
                     G.add_edge(
                         a1, a2,
-                        weight=1,
+                        weight=1.0,
                         crosspost_count=0,
                         cosubreddit_count=1,
                         edge_type="co-subreddit",
@@ -266,30 +266,32 @@ def build_full_graph(db_path: str = DUCKDB_PATH, force_rebuild: bool = False) ->
     return _graph_cache
 
 
-def get_filtered_graph(min_pagerank: float = 0.0, community: Optional[int] = None) -> dict:
+def get_filtered_graph(min_pagerank: float = 0.0, community: Optional[int] = None, max_nodes: int = 250) -> dict:
     """
     Get the graph filtered by minimum PageRank threshold and/or community.
 
     Args:
         min_pagerank: Minimum PageRank score to include a node.
         community: If set, only include nodes from this community.
+        max_nodes: Maximum nodes to return to prevent frontend physics engine crashing.
 
     Returns:
         Filtered graph data dict.
     """
     full_graph = build_full_graph()
 
-    if min_pagerank <= 0 and community is None:
-        return full_graph
-
     # Filter nodes
     filtered_nodes = []
     node_ids = set()
     for node in full_graph["nodes"]:
+        if len(filtered_nodes) >= max_nodes:
+            break
+            
         if node["pagerank"] < min_pagerank:
             continue
         if community is not None and node["community"] != community:
             continue
+            
         filtered_nodes.append(node)
         node_ids.add(node["id"])
 

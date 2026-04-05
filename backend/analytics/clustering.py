@@ -63,6 +63,8 @@ DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 UMAP_CACHE_PATH = os.path.join(DATA_DIR, "umap_2d.npy")
 CLUSTER_CACHE_PATH = os.path.join(DATA_DIR, "cluster_cache.json")
 
+_memory_cluster_cache = {}
+
 
 # ---------------------------------------------------------------------------
 # Get embeddings from FAISS
@@ -218,6 +220,11 @@ def run_clustering(
     Returns:
         dict with cluster data for the frontend.
     """
+    global _memory_cluster_cache
+    cache_key = str(n_clusters)
+    if not force_recompute and cache_key in _memory_cluster_cache:
+        return _memory_cluster_cache[cache_key]
+
     embeddings, post_ids = _get_embeddings_and_ids()
 
     if embeddings.shape[0] == 0:
@@ -250,22 +257,27 @@ def run_clustering(
         labels, method = cluster_kmeans(embeddings, n_clusters)
     else:
         # Auto-detect with HDBSCAN, fallback to KMeans
-        try:
-            labels, method = cluster_hdbscan(embeddings)
-            n_unique = len(set(labels)) - (1 if -1 in labels else 0)
-            noise_ratio = (labels == -1).sum() / len(labels)
+        if embeddings.shape[0] > 1500:
+            logger.info("Dataset too large for HDBSCAN (>1500 limit). Defaulting to KMeans.")
+            labels, method = cluster_kmeans(embeddings, n_clusters=15)
+            warning = "Used KMeans (15 clusters) for performance on large dataset."
+        else:
+            try:
+                labels, method = cluster_hdbscan(embeddings)
+                n_unique = len(set(labels)) - (1 if -1 in labels else 0)
+                noise_ratio = (labels == -1).sum() / len(labels)
 
-            if n_unique <= 1 or noise_ratio > 0.8:
-                logger.warning(
-                    f"HDBSCAN produced degenerate results ({n_unique} clusters, "
-                    f"{noise_ratio:.0%} noise). Falling back to KMeans."
-                )
+                if n_unique <= 1 or noise_ratio > 0.8:
+                    logger.warning(
+                        f"HDBSCAN produced degenerate results ({n_unique} clusters, "
+                        f"{noise_ratio:.0%} noise). Falling back to KMeans."
+                    )
+                    labels, method = cluster_kmeans(embeddings, n_clusters=10)
+                    warning = "HDBSCAN produced insufficient clusters. Used KMeans fallback with 10 clusters."
+            except (ImportError, Exception) as e:
+                logger.warning(f"HDBSCAN failed ({e}). Using KMeans fallback.")
                 labels, method = cluster_kmeans(embeddings, n_clusters=10)
-                warning = "HDBSCAN produced insufficient clusters. Used KMeans fallback with 10 clusters."
-        except (ImportError, Exception) as e:
-            logger.warning(f"HDBSCAN failed ({e}). Using KMeans fallback.")
-            labels, method = cluster_kmeans(embeddings, n_clusters=10)
-            warning = f"HDBSCAN unavailable. Used KMeans with 10 clusters."
+                warning = f"HDBSCAN unavailable. Used KMeans with 10 clusters."
 
     # --- UMAP 2D projection ---
     coords_2d = None
@@ -312,7 +324,7 @@ def run_clustering(
             point["y"] = float(coords_2d[i][1])
         points.append(point)
 
-    return {
+    result_dict = {
         "clusters": clusters,
         "points": points,
         "n_clusters": n_actual_clusters,
@@ -320,6 +332,9 @@ def run_clustering(
         "warning": warning,
         "total_points": len(points),
     }
+    
+    _memory_cluster_cache[cache_key] = result_dict
+    return result_dict
 
 
 def get_cluster_posts(

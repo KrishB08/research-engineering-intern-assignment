@@ -25,7 +25,7 @@ python-louvain==0.16
 google-generativeai==0.8.4
 
 # Visualization (server-side)
-datamapplot==0.4.5
+datamapplot>=0.4.2
 matplotlib==3.10.0
 
 # Data handling

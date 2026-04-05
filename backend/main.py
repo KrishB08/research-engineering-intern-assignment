@@ -342,18 +342,63 @@ async def clusters(
     try:
         result = run_clustering(n_clusters=n_clusters)
 
-        # Generate labels for each cluster using Gemini
+        # Batch load all required posts to prevent re-running clustering multiple times
+        all_post_ids = []
         for cluster in result.get("clusters", []):
+            if cluster["cluster_id"] >= 0:
+                all_post_ids.extend([str(pid) for pid in cluster.get("post_ids", [])[:10]])
+        
+        post_dict = {}
+        if all_post_ids:
+            conn = get_db_connection()
+            placeholders = ", ".join(["?"] * len(all_post_ids))
+            rows = conn.execute(f"""
+                SELECT post_id, title, selftext, author, created_utc, subreddit,
+                       score, num_comments, permalink
+                FROM posts
+                WHERE post_id IN ({placeholders})
+            """, all_post_ids).fetchall()
+            conn.close()
+            
+            for row in rows:
+                post_dict[str(row[0])] = {
+                    "post_id": row[0], "title": row[1], "selftext": (row[2] or "")[:300],
+                    "author": row[3], "created_utc": str(row[4]) if row[4] else None,
+                    "subreddit": row[5], "score": row[6], "num_comments": row[7],
+                    "permalink": row[8]
+                }
+
+        # Sort clusters by size to ensure largest get the Gemini labels
+        cluster_list = result.get("clusters", [])
+        cluster_list.sort(key=lambda x: x.get("size", 0), reverse=True)
+
+        used_labels = set()
+        for i, cluster in enumerate(cluster_list):
             if cluster["cluster_id"] >= 0 and cluster.get("post_ids"):
-                # Get post details for labeling
-                posts = get_cluster_posts(
-                    cluster["cluster_id"],
-                    n_clusters=n_clusters,
-                    limit=10,
-                )
-                cluster["label"] = label_cluster(posts)
+                posts = [post_dict[str(pid)] for pid in cluster["post_ids"][:10] if str(pid) in post_dict]
+                if i < 3: # Only label top 3 to prevent API extreme latency timeout
+                    base_label = label_cluster(posts)
+                else:
+                    base_label = "Topic Group"
+                
+                # Append primary subreddit if it's generic
+                if base_label in ("Mixed Discussions", "Topic Group", "Uncategorized"):
+                    top_sub = posts[0].get("subreddit", "") if posts else ""
+                    if top_sub:
+                        base_label = f"r/{top_sub} discussions"
+                
+                # Assure absolute uniqueness
+                final_label = base_label
+                counter = 1
+                while final_label in used_labels:
+                    final_label = f"{base_label} ({counter})"
+                    counter += 1
+                
+                used_labels.add(final_label)
+                cluster["label"] = final_label
                 cluster["top_posts"] = posts[:5]
 
+        result["clusters"] = cluster_list
         return result
     except Exception as e:
         logger.error(f"Clustering error: {e}")
