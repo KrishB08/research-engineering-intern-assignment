@@ -14,11 +14,11 @@ Built for [SimPPL](https://simppl.org) — a nonprofit focused on information in
 
 | Feature | Screenshot |
 |---------|------------|
-| Semantic Search & Chatbot | *[screenshot placeholder]* |
-| Time Series Analysis | *[screenshot placeholder]* |
-| Network Graph (vis.js) | *[screenshot placeholder]* |
-| Topic Clusters (UMAP) | *[screenshot placeholder]* |
-| Case Study | *[screenshot placeholder]* |
+| Semantic Search & Chatbot | *[screenshots/semantic_search.png]* |
+| Time Series Analysis | *[screenshots/time_series.png]* |
+| Network Graph (vis.js) | *[screenshots/Network_graph.png]* |
+| Topic Clusters (UMAP) | *[screenshots/Topic_clusters.png]* |
+| Case Study | *[screenshots/Case_study.png]* |
 
 ---
 
