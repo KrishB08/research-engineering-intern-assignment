@@ -11,11 +11,11 @@ Built for the **SimPPL Research Engineering Internship**, this dashboard ingests
 | Service | Platform | Status | URL |
 |---------|----------|--------|-----|
 | **Frontend UI** | Vercel | 🟢 Live | [https://simppl-dashboard.vercel.app](https://simppl-dashboard.vercel.app) |
-| **Backend API** | DigitalOcean | 🟢 Live | `http://168.144.30.3` |
+| **Backend API** | DigitalOcean | 🟢 Live | `https://168.144.30.3.nip.io/health` |
 
 ### 🎥 Project Walkthrough (Video)
 **View the full demonstration on Google Drive:**
-👉 **[Watch the Video Walkthrough]([PLACEHOLDER_FOR_YOUR_DRIVE_LINK])**
+👉 **[Watch the Video Walkthrough]([https://drive.google.com/file/d/1WZIGdT3P1e5rLankgIRDW2cEoRtaL8ka/view?usp=sharing])**
 
 ---
 
