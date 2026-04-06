@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
-import Sidebar from './components/Sidebar'
-import SearchChat from './components/SearchChat'
-import TimeSeries from './components/TimeSeries'
-import NetworkGraph from './components/NetworkGraph'
-import TopicClusters from './components/TopicClusters'
-import CaseStudy from './components/CaseStudy'
+import Sidebar from './components/Sidebar.jsx'
+import SearchChat from './components/SearchChat.jsx'
+import TimeSeries from './components/TimeSeries.jsx'
+import NetworkGraph from './components/NetworkGraph.jsx'
+import TopicClusters from './components/TopicClusters.jsx'
+import CaseStudy from './components/CaseStudy.jsx'
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
